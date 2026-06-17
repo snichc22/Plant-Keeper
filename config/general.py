@@ -1,20 +1,19 @@
-SDA_PIN=10
-SCL_PIN=9
+SDA_PIN = 19
+SCL_PIN = 18
 
-WIFI_SSID="meowphone"
-WIFI_PASSWORD="labricecat"
+WIFI_SSID = "meowphone"
+WIFI_PASSWORD = "labricecat"
 
-MQTT_USER="htl"
-MQTT_BROKER="sc.htl-kaindorf.at"
-MQTT_PORT=1883
-MQTT_PASSWORD="welc0m3"
+MQTT_USER = "mqttuser"
+MQTT_BROKER = "192.168.194.117"
+MQTT_PORT = 1883
+MQTT_PASSWORD = "password"
 
-TOPIC_LOCATION="top"
-TOF="tof"
-MOISTURE="mois"
+TOPIC_LOCATION = "top"
 
-MOISTURE_ADC_PIN=1
-MOISTURE_DRY_MAX=500
-MOISTURE_WET_MAX=1000
+SOLENOID = 0
+SOLENOID_COMMAND_TOPIC = TOPIC_LOCATION + "/solenoid/set"
+SOLENOID_STATUS_TOPIC = TOPIC_LOCATION + "/solenoid/status"
 
-SOLENOID=0 #is 0 fr
+SOLENOID_ON_MESSAGES = ("on", "start", "open", "1", "true")
+SOLENOID_OFF_MESSAGES = ("off", "stop", "close", "0", "false")

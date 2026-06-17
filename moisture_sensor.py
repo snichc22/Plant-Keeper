@@ -1,6 +1,6 @@
 import mqtt_sensor
 
-from machine import ADC, Pin, I2C
+from machine import ADC, Pin
 
 class MoistureSensor(mqtt_sensor.MqttSensor):
     def __init__(
@@ -25,9 +25,23 @@ class MoistureSensor(mqtt_sensor.MqttSensor):
 
     def read(self):
         value = self.read_raw_value()
-        percentage = 100 - ((self.dry_value - value) / (self.dry_value - self.wet_value)) * 100
-        #super(MoistureSensor, self).send(self.main_topic + '/' + self.config.MOISTURE, str(value))
-        return value, percentage
-    
-    def send_mqtt(self):
-        pass
+        wetness = self.calculate_wetness(value)
+        self.send_mqtt(value, wetness)
+        return value, wetness
+
+    def calculate_wetness(self, value):
+        span = self.wet_value - self.dry_value
+        if span == 0:
+            return 0
+
+        wetness = ((value - self.dry_value) / span) * 100
+        if wetness < 0:
+            return 0
+        if wetness > 100:
+            return 100
+        return wetness
+
+    def send_mqtt(self, raw_value, wetness):
+        base_topic = self.main_topic + '/' + self.config.MQTT_TOPIC
+        super(MoistureSensor, self).send(base_topic, str(raw_value))
+        super(MoistureSensor, self).send(self.main_topic + '/' + self.config.MQTT_WETNESS_TOPIC, "{:.2f}".format(wetness))
