@@ -1,8 +1,16 @@
 SDA_PIN = 33
 SCL_PIN = 32
 
-WIFI_SSID = "meowphone"
-WIFI_PASSWORD = "labricecat"
+WIFI_SSID = "S-Campus-Students"
+WIFI_ENABLED = True
+WIFI_ENTERPRISE = True
+WIFI_USERNAME = ""
+WIFI_PASSWORD = ""
+
+try:
+    from config.secrets import WIFI_USERNAME, WIFI_PASSWORD
+except ImportError:
+    pass
 
 MQTT_ENABLED = True
 MQTT_USER = "htl"

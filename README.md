@@ -23,6 +23,16 @@ It can also publish readings and solenoid commands over MQTT.
 
 Main settings are in `config/general.py`.
 
+Wi-Fi is configured with:
+
+```python
+WIFI_SSID = "S-Campus-Students"
+WIFI_ENABLED = True
+WIFI_ENTERPRISE = True
+```
+
+Put the username and password in `config/secrets.py`.
+
 Turn MQTT and the OLED display on or off with:
 
 ```python

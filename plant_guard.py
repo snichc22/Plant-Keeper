@@ -25,7 +25,17 @@ if config.DISPLAY_ENABLED:
 def connect_wifi():
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
-    wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
+
+    if config.WIFI_ENTERPRISE:
+        try:
+            wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD, identity=config.WIFI_USERNAME)
+        except TypeError:
+            try:
+                wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD, username=config.WIFI_USERNAME)
+            except TypeError:
+                raise RuntimeError("Enterprise Wi-Fi is not supported by this MicroPython firmware")
+    else:
+        wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
 
     print("WIFI: try to connect ...")
     while not wlan.isconnected():
@@ -56,8 +66,10 @@ def connect_mqtt():
 wlan = None
 mqtt = None
 
-if config.MQTT_ENABLED:
+if config.WIFI_ENABLED or config.MQTT_ENABLED:
     wlan = connect_wifi()
+
+if config.MQTT_ENABLED:
     try:
         mqtt = connect_mqtt()
     except Exception as e:
