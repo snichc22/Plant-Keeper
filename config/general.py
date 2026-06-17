@@ -4,6 +4,7 @@ SCL_PIN = 18
 WIFI_SSID = "meowphone"
 WIFI_PASSWORD = "labricecat"
 
+MQTT_ENABLED = True
 MQTT_USER = "mqttuser"
 MQTT_BROKER = "192.168.194.117"
 MQTT_PORT = 1883

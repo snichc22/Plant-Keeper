@@ -1,39 +1,68 @@
-from machine import ADC, Pin, I2C
+from machine import Pin, I2C
 import network
 import time
 import libs.ssd1306 as ssd1306
 
 import config.general as config
-from umqtt.simple import MQTTClient
-
 import config.sensors.moisture as moisture_config
 import config.sensors.tof as tof_config
 import moisture_sensor
 import tof_sensor
 import utils
 
-# WLAN verbinden
-wlan = network.WLAN(network.STA_IF)
-wlan.active(True)
-wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
+MQTTClient = None
 
-print('WIFI: try to connect ...')
-while not wlan.isconnected():
-    time.sleep_ms(200)
-    pass
-print("WLAN connected:", wlan.ifconfig())
+if config.MQTT_ENABLED:
+    try:
+        from umqtt.simple import MQTTClient
+    except ImportError:
+        from libs.umqttsimple import MQTTClient
 
-# MQTT verbinden
-mqtt = MQTTClient("esp32-client",
-                    config.MQTT_BROKER,
-                    port=config.MQTT_PORT,
-                    user=config.MQTT_USER,
-                    password=config.MQTT_PASSWORD)
 
-mqtt.connect()
-print("MQTT connected")
+def connect_wifi():
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    wlan.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
 
-i2c=I2C(0,sda=config.SDA_PIN, scl=config.SCL_PIN, freq=400000)
+    print("WIFI: try to connect ...")
+    while not wlan.isconnected():
+        time.sleep_ms(200)
+
+    print("WLAN connected:", wlan.ifconfig())
+    return wlan
+
+
+def connect_mqtt():
+    if not config.MQTT_ENABLED:
+        print("MQTT disabled")
+        return None
+
+    mqtt = MQTTClient(
+        "esp32-client",
+        config.MQTT_BROKER,
+        port=config.MQTT_PORT,
+        user=config.MQTT_USER,
+        password=config.MQTT_PASSWORD
+    )
+
+    mqtt.connect()
+    print("MQTT connected")
+    return mqtt
+
+
+wlan = None
+mqtt = None
+
+if config.MQTT_ENABLED:
+    wlan = connect_wifi()
+    try:
+        mqtt = connect_mqtt()
+    except Exception as e:
+        print("MQTT Error:", e)
+        mqtt = None
+
+i2c = I2C(0, sda=Pin(config.SDA_PIN), scl=Pin(config.SCL_PIN), freq=400000)
+
 
 class OledDisplay:
     def __init__(
@@ -52,35 +81,42 @@ class OledDisplay:
 
         self.i2c = i2c
         self.oled = ssd1306.SSD1306_I2C(width, height, i2c)
-        
+
         self.initial()
-        
+
     def initial(self):
-        print('init display')
+        print("init display")
 
     def add_line(self, line):
-        self.lines.append(line);
+        self.lines.append(line)
 
     def show(self, raw_value, percentage):
         self.oled.fill(0)
         self.show_info_line()
-        
-        self.oled.text(f'Feuchte {percentage:.2f}%', self.text_x, self.percentage_y)
+
+        self.oled.text("Feuchte {:.2f}%".format(percentage), self.text_x, self.percentage_y)
         self.oled.show()
-        
+
     def show_info_line(self):
         actual_time = time.localtime(time.time())
-        self.oled.text(f'{actual_time[3]:02d}:{actual_time[4]:02d}', 0, 0)
-        num_rectangles = utils.rssi_to_int(wlan.status('rssi'))
-        
+        self.oled.text("{:02d}:{:02d}".format(actual_time[3], actual_time[4]), 0, 0)
+
+        if wlan is None or not wlan.isconnected():
+            return
+
         rectangle_height = 8
-        num_rectangles = 4
-        rectangle_width = 3  # Breite für die Rechtecke
-        
+        rectangle_width = 3
         offset_signal_strength = 110
-        for x in range(utils.rssi_to_int(wlan.status('rssi'))):
-            self.oled.fill_rect(offset_signal_strength + x*5, 0, rectangle_width, rectangle_height, 1)
-        
+
+        for x in range(utils.rssi_to_int(wlan.status("rssi"))):
+            self.oled.fill_rect(
+                offset_signal_strength + x * 5,
+                0,
+                rectangle_width,
+                rectangle_height,
+                1
+            )
+
 
 class SolenoidController:
     def __init__(
@@ -103,10 +139,16 @@ class SolenoidController:
         self.turn_off()
 
     def subscribe(self):
+        if self.mqtt is None:
+            return
+
         self.mqtt.subscribe(self.command_topic_bytes)
         print("Subscribed to solenoid commands:", self.command_topic)
 
     def handle_message(self, topic, msg):
+        if self.mqtt is None:
+            return False
+
         if topic != self.command_topic_bytes:
             return False
 
@@ -131,9 +173,12 @@ class SolenoidController:
         self.publish_status("off")
 
     def publish_status(self, status):
+        if self.mqtt is None:
+            return
+
         self.mqtt.publish(self.status_topic.encode(), status.encode(), True)
-        
-        
+
+
 class Application:
     def __init__(
         self,
@@ -151,7 +196,10 @@ class Application:
         self.update_interval = update_interval
         self.update_interval_ms = update_interval * 1000
         self.mqtt = mqtt
-        self.mqtt.set_callback(self.mqtt_callback)
+
+        if self.mqtt is not None:
+            self.mqtt.set_callback(self.mqtt_callback)
+
         self.solenoid.subscribe()
 
     def mqtt_callback(self, topic, msg):
@@ -169,12 +217,16 @@ class Application:
     def run(self):
         last_update = time.ticks_ms() - self.update_interval_ms
         while True:
-            self.mqtt.check_msg()
+            if self.mqtt is not None:
+                self.mqtt.check_msg()
+
             now = time.ticks_ms()
             if time.ticks_diff(now, last_update) >= self.update_interval_ms:
                 self.update()
                 last_update = now
+
             time.sleep_ms(100)
+
 
 tof = tof_sensor.TofSensor(
     config.TOPIC_LOCATION,

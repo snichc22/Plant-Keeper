@@ -3,11 +3,12 @@ class MqttSensor:
         self.mqtt = mqtt
     
     def send(self, topic, value):
-        #self.mqtt.publish(self.to_bytes(topic), self.to_bytes(value), True)
-        pass
+        if self.mqtt is None:
+            return
+
+        self.mqtt.publish(self.to_bytes(topic), self.to_bytes(value), True)
 
     def to_bytes(self, value):
-        pass
-        #if isinstance(value, bytes):
-        #    return value
-        #return str(value).encode()
+        if isinstance(value, bytes):
+            return value
+        return str(value).encode()
