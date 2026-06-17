@@ -219,6 +219,10 @@ class Application:
         self.tof.read()
 
     def run(self):
+        solenoid.turn_off()
+        time.sleep(1)
+        solenoid.turn_on()
+        
         last_update = time.ticks_ms() - self.update_interval_ms
         while True:
             if self.mqtt is not None:

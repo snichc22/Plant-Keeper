@@ -4,17 +4,17 @@ SCL_PIN = 32
 WIFI_SSID = "meowphone"
 WIFI_PASSWORD = "labricecat"
 
-MQTT_ENABLED = False
+MQTT_ENABLED = True
 MQTT_USER = "htl"
 MQTT_BROKER = "sc.htl-kaindorf.at"
 MQTT_PORT = 1883
 MQTT_PASSWORD = "welc0m3"
 
-DISPLAY_ENABLED = True
+DISPLAY_ENABLED = False
 
 TOPIC_LOCATION = "top"
 
-SOLENOID = 34
+SOLENOID = 12
 SOLENOID_COMMAND_TOPIC = TOPIC_LOCATION + "/solenoid/set"
 SOLENOID_STATUS_TOPIC = TOPIC_LOCATION + "/solenoid/status"
 
