@@ -10,6 +10,8 @@ MQTT_BROKER = "sc.htl-kaindorf.at"
 MQTT_PORT = 1883
 MQTT_PASSWORD = "welc0m3"
 
+DISPLAY_ENABLED = True
+
 TOPIC_LOCATION = "top"
 
 SOLENOID = 34

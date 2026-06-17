@@ -1,7 +1,6 @@
 from machine import Pin, I2C
 import network
 import time
-import libs.ssd1306 as ssd1306
 
 import config.general as config
 import config.sensors.moisture as moisture_config
@@ -11,12 +10,16 @@ import tof_sensor
 import utils
 
 MQTTClient = None
+ssd1306 = None
 
 if config.MQTT_ENABLED:
     try:
         from umqtt.simple import MQTTClient
     except ImportError:
         from libs.umqttsimple import MQTTClient
+
+if config.DISPLAY_ENABLED:
+    import libs.ssd1306 as ssd1306
 
 
 def connect_wifi():
@@ -210,7 +213,8 @@ class Application:
 
     def update(self):
         raw_value, percentage = self.sensor.read()
-        self.display.show(raw_value, percentage)
+        if self.display is not None:
+            self.display.show(raw_value, percentage)
         print("Moisture: {}".format(raw_value))
         self.tof.read()
 
@@ -241,11 +245,14 @@ moisture = moisture_sensor.MoistureSensor(
     mqtt
 )
 
-display = OledDisplay(
-    i2c,
-    width=128,
-    height=64
-)
+display = None
+
+if config.DISPLAY_ENABLED:
+    display = OledDisplay(
+        i2c,
+        width=128,
+        height=64
+    )
 
 solenoid = SolenoidController(
     mqtt,

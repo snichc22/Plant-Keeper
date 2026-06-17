@@ -23,13 +23,14 @@ It can also publish readings and solenoid commands over MQTT.
 
 Main settings are in `config/general.py`.
 
-Turn MQTT on or off with:
+Turn MQTT and the OLED display on or off with:
 
 ```python
 MQTT_ENABLED = True
+DISPLAY_ENABLED = True
 ```
 
-Set it to `False` to run without Wi-Fi/MQTT publishing.
+Set either one to `False` to disable it.
 
 Moisture and ToF sensor topics/settings are in `config/sensors/`.
 
