@@ -23,9 +23,10 @@ class TofSensor(mqtt_sensor.MqttSensor):
         value = self.read_raw_value()
         print(f'Value: {value}')
         percentage = 1 - ((200 - value) / 200) # 200cm max range
-        self.send_mqtt(value)
+        #self.send_mqtt(value)
         return value, percentage
     
     def send_mqtt(self, value):
-        super(TofSensor, self).send(self.main_topic + '/' + self.config.MQTT_TOPIC, str(value))
+        #super(TofSensor, self).send(self.main_topic + '/' + self.config.TOF, str(value))
+        pass
        

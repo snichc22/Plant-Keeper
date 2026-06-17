@@ -39,7 +39,7 @@ mqtt = MQTTClient("esp32-client",
                     password=config.MQTT_PASSWORD)
 
 try:
-    mqtt.connect()
+    #mqtt.connect()
     print("MQTT connected")
 except Exception as e:
     print("MQTT Error: ", e)
@@ -127,7 +127,7 @@ class Application:
 
     def run(self):
         while True:
-            self.mqtt.check_msg()
+            #self.mqtt.check_msg()
             self.update()
             time.sleep(self.update_interval)
 

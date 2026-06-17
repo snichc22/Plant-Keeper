@@ -26,7 +26,7 @@ class MoistureSensor(mqtt_sensor.MqttSensor):
     def read(self):
         value = self.read_raw_value()
         percentage = 100 - ((self.dry_value - value) / (self.dry_value - self.wet_value)) * 100
-        super(MoistureSensor, self).send(self.main_topic + '/' + self.config.MQTT_TOPIC, str(value))
+        #super(MoistureSensor, self).send(self.main_topic + '/' + self.config.MOISTURE, str(value))
         return value, percentage
     
     def send_mqtt(self):
