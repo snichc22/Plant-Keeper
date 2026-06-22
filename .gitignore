@@ -1,2 +1,4 @@
 config/secrets.py
 config/local.py
+
+.venv
