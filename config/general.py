@@ -18,6 +18,16 @@ MQTT_BROKER = "sc.htl-kaindorf.at"
 MQTT_PORT = 1883
 MQTT_PASSWORD = "welc0m3"
 
+try:
+    import config.local as local_config
+    MQTT_ENABLED = getattr(local_config, "MQTT_ENABLED", MQTT_ENABLED)
+    MQTT_USER = getattr(local_config, "MQTT_USER", MQTT_USER)
+    MQTT_BROKER = getattr(local_config, "MQTT_BROKER", MQTT_BROKER)
+    MQTT_PORT = getattr(local_config, "MQTT_PORT", MQTT_PORT)
+    MQTT_PASSWORD = getattr(local_config, "MQTT_PASSWORD", MQTT_PASSWORD)
+except ImportError:
+    pass
+
 DISPLAY_ENABLED = False
 
 TOPIC_LOCATION = "top"
